@@ -1,6 +1,6 @@
 # Pasos de instalación
 
-Esta guía instala **Centro de Operaciones · HikCentral × DJI FlightHub 2**, versión **v1.0.0**, en otro servidor Linux.
+Esta guía instala **Centro de Operaciones · HikCentral × DJI FlightHub 2**, versión **v1.0.1**, en otro servidor Linux.
 
 ## 1. Preparar el servidor
 
@@ -25,7 +25,7 @@ cd integracionfh2onpremhikcentralmenucamaras
 Para instalar exactamente la versión publicada:
 
 ```bash
-git checkout v1.0.0
+git checkout v1.0.1
 ```
 
 Si prefieres la versión más reciente de `main`, omite ese último comando.
@@ -80,6 +80,29 @@ Entra a **Configuración**, desde el menú lateral, y completa:
 
 Pulsa **Guardar configuración**. El indicador del gateway comprueba conectividad, no ejecuta un workflow.
 
+### FlightHub 2 instalado en el mismo servidor Linux
+
+En **FH2 URL**, usa:
+
+```text
+http://127.0.0.1:30812/openapi/v0.1/workflow
+```
+
+La conexión se realiza dentro del servidor, por lo que no depende de la IP de su tarjeta de red. Las instalaciones nuevas incluyen esta URL en `.env.example`. Si FlightHub 2 está en otro equipo, usa la IP o el nombre de ese equipo; `127.0.0.1` siempre se refiere al entorno donde corre el middleware.
+
+Esta URL es diferente del endpoint que configuras en HikCentral:
+
+```text
+http://IP_DEL_SERVIDOR_LINUX:5000/hik-alert
+```
+
+HikCentral debe utilizar una dirección del servidor Linux accesible desde su propia red, no `127.0.0.1`.
+
+**FH2 Host Header** es independiente de la URL y puede depender del enrutamiento interno del AIO. Conserva el valor requerido por tu instalación; no lo sustituyas automáticamente al cambiar de red.
+
+Si actualizas una instalación existente, el instalador conserva `.env`. Revisa y guarda **FH2 URL** desde Configuración para aplicar esta corrección; actualizar GitHub no cambia tus valores privados.
+
+
 ## 6. Registrar workflows y cámaras
 
 Para utilizar respuestas diferentes por cámara:
@@ -125,6 +148,8 @@ Para reiniciarlo:
 ```bash
 sudo systemctl restart hikmiddleware
 ```
+
+Si un evento llega al dashboard y muestra **502: No se pudo conectar con FlightHub 2**, revisa la URL configurada en FlightHub: podría conservar una IP de una red anterior. Esto no confirma un error del UUID. «Gateway accesible» solo confirma conectividad TCP; la aceptación del token, el Host y el workflow requiere una comprobación posterior de la API o un evento operativo controlado.
 
 Si funciona en `127.0.0.1` pero no desde otro equipo, revisa la IP, la conectividad entre equipos y las reglas de acceso al puerto TCP 5000 del servidor.
 

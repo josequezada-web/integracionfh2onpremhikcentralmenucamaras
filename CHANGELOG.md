@@ -1,5 +1,11 @@
 # Cambios
 
+## 1.0.1 — 2026-09-09
+
+- URL local de FlightHub 2 en el ejemplo para instalaciones compartidas con el middleware.
+- Ayuda en Configuración y guías para diferenciar la URL interna, el endpoint de HikCentral y el Host Header.
+- Instrucciones para corregir instalaciones existentes sin sobrescribir credenciales ni asignaciones.
+
 ## 1.0.0 — 2026-09-09
 
 - Dashboard React y diseño compartido en cámaras y configuración, con logotipos locales.

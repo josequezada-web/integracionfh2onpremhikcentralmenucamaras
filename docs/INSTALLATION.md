@@ -29,6 +29,14 @@ El instalador copia los archivos a `/opt/fh2-hikcentral`, crea el usuario de ser
 
 No ejecutes el servidor directamente desde la USB: después de instalar puedes retirarla. Con `--target /ruta/permanente` puedes elegir otro directorio. Repetir la instalación sobre el mismo destino conserva `.env`, `cameras.json`, `workflows.json` y `logs/`. Haz copia de esos archivos antes de actualizar. El nombre del servicio y el puerto son fijos: este instalador gestiona una instancia por servidor.
 
+## URL local de FlightHub 2
+
+Cuando ambos servicios están instalados directamente en el mismo servidor Linux, la URL recomendada es `http://127.0.0.1:30812/openapi/v0.1/workflow`. Es el valor incluido en `.env.example` desde v1.0.1. Evita conservar en ese campo una IP de una LAN anterior. Si FlightHub está en otro equipo, usa su IP o nombre; si el middleware está aislado en un contenedor, su loopback no es el del host.
+
+No cambies el endpoint de HikCentral a loopback: HikCentral debe seguir enviando a `http://IP_DEL_SERVIDOR_LINUX:5000/hik-alert`. El Host Header de FlightHub puede ser distinto de ambas direcciones y debe conservar el valor requerido por el AIO.
+
+El instalador no sobrescribe `.env` existente. Para aplicar el cambio a una instalación anterior, guarda la URL correcta en `/settings`; no es necesario reiniciar. «Gateway accesible» comprueba TCP y no garantiza que el workflow se haya ejecutado.
+
 ## Acceso directo con logotipo
 
 Si la instalación se ejecuta con `sudo` desde un usuario con escritorio, crea **Centro de Operaciones** en su menú de aplicaciones. Abre el navegador predeterminado con el dashboard. En un servidor sin entorno gráfico, usa el navegador de otro equipo.
@@ -74,7 +82,7 @@ python3 scripts/package_release.py --wheelhouse wheelhouse --output release/cent
 
 Los archivos salen en `release/`, junto con su SHA256. El empaquetador usa una lista explícita de archivos: excluye credenciales, cámaras, catálogo real de workflows, historial, `.git`, dependencias Node y entornos virtuales. No es una copia de seguridad de la configuración de un cliente.
 
-Para distribuir por GitHub, incluye fuentes, `static/dist/`, `static/brand/` y `templates/_assets.html`. Los paquetes y `wheelhouse/` no se añaden al historial; pueden adjuntarse a una publicación de GitHub. La versión 1.0.0 está identificada por la etiqueta `v1.0.0`.
+Para distribuir por GitHub, incluye fuentes, `static/dist/`, `static/brand/` y `templates/_assets.html`. Los paquetes y `wheelhouse/` no se añaden al historial; pueden adjuntarse a una publicación de GitHub. La versión 1.0.1 está identificada por la etiqueta `v1.0.1`.
 
 ## Operación y comprobaciones
 

@@ -2,7 +2,7 @@
 
 Consola web para recibir eventos de HikCentral y ejecutar el workflow de DJI FlightHub 2 On-Premises asignado a cada cámara.
 
-**Versión 1.0.0** · Dashboard React · Workflows por cámara · Instalador Linux · Acceso directo con logotipo
+**Versión 1.0.1** · Dashboard React · Workflows por cámara · Instalador Linux · Acceso directo con logotipo
 
 ## Instalar en otro servidor Linux
 
@@ -23,9 +23,13 @@ Abre **http://IP_DEL_SERVIDOR:5000/dashboard** desde un equipo de la misma red.
 
 El instalador copia la aplicación a `/opt/fh2-hikcentral`, crea un entorno Python y el servicio `hikmiddleware`, y lo habilita al arrancar el servidor. No hace falta mantener abierta una terminal ni ejecutar el programa desde la carpeta clonada o una USB.
 
-Para instalar exactamente esta versión, ejecuta `git checkout v1.0.0` antes del instalador.
+Para instalar exactamente esta versión, ejecuta `git checkout v1.0.1` antes del instalador.
 
 ## Configurar la operación
+
+Si FlightHub 2 On-Premises y el middleware están instalados en este mismo servidor Linux, configura **FH2 URL** como `http://127.0.0.1:30812/openapi/v0.1/workflow`. Así no depende de cambios en la IP de la LAN. El endpoint de HikCentral sigue siendo `http://IP_DEL_SERVIDOR:5000/hik-alert`. Si FlightHub está en otro equipo, utiliza su IP o nombre. Conserva el Host Header requerido por tu AIO.
+
+Al actualizar una instalación existente, `.env` se conserva: ajusta la URL desde **Configuración** si todavía apunta a una dirección anterior.
 
 1. En **Configuración**, guarda la URL, token, Project UUID, workflow predeterminado y Creator ID de tu FlightHub 2.
 2. En **Workflows disponibles**, agrega los workflows adicionales con nombre y UUID. Deben existir en el mismo proyecto de FlightHub 2.
