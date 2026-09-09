@@ -5,7 +5,7 @@ ROOT_FILES = [
     'app.py', 'config.py', 'manager.py', 'cameras.py', 'setup.py',
     'install.sh', 'diagnose.sh', 'requirements.txt', 'requirements.lock',
     '.env.example', 'cameras.json.example', 'workflows.json.example',
-    'README.md', 'CHANGELOG.md', 'VERSION', 'package.json', 'package-lock.json',
+    'README.md', 'PASOS_DE_INSTALACION.md', 'CHANGELOG.md', 'VERSION', 'package.json', 'package-lock.json',
 ]
 DIRECTORIES = {
     'routes': {'.py'}, 'services': {'.py'}, 'templates': {'.html'},

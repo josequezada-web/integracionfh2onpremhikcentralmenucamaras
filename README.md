@@ -6,6 +6,8 @@ Consola web para recibir eventos de HikCentral y ejecutar el workflow de DJI Fli
 
 ## Instalar en otro servidor Linux
 
+📖 [Pasos de instalación: guía paso a paso para un servidor nuevo](PASOS_DE_INSTALACION.md)
+
 Recomendado: Ubuntu 24.04 LTS o Debian 12, con systemd y acceso a Internet para descargar dependencias. El servidor no necesita Node.js: los archivos del frontend están incluidos. El instalador requiere Python 3.10+ y prepara Python/venv mediante apt si faltan.
 
 ```bash
