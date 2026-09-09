@@ -1,15 +1,19 @@
 import requests
 
-from config import Config
+from services.settings_service import configuracion_actual
 
 
-def enviar_workflow_fh2(nombre_evento, descripcion, latitud, longitud, nivel=5):
+def enviar_workflow_fh2(nombre_evento, descripcion, latitud, longitud, nivel=5, workflow_uuid=None, configuracion=None):
+    config = configuracion if configuracion is not None else configuracion_actual()
+    selected_workflow = workflow_uuid or config.get("FH2_WORKFLOW_UUID")
+    if not selected_workflow:
+        raise ValueError("No hay un workflow configurado.")
     payload = {
-        "workflow_uuid": Config.FH2_WORKFLOW_UUID,
+        "workflow_uuid": selected_workflow,
         "trigger_type": 0,
         "name": nombre_evento,
         "params": {
-            "creator": Config.FH2_CREATOR_ID,
+            "creator": config.get("FH2_CREATOR_ID"),
             "latitude": float(latitud),
             "longitude": float(longitud),
             "level": int(nivel),
@@ -19,15 +23,15 @@ def enviar_workflow_fh2(nombre_evento, descripcion, latitud, longitud, nivel=5):
 
     headers = {
         "Content-Type": "application/json",
-        "X-User-Token": Config.FH2_USER_TOKEN,
-        "x-project-uuid": Config.FH2_PROJECT_UUID
+        "X-User-Token": config.get("FH2_USER_TOKEN"),
+        "x-project-uuid": config.get("FH2_PROJECT_UUID")
     }
 
-    if Config.FH2_HOST_HEADER:
-        headers["Host"] = Config.FH2_HOST_HEADER
+    if config.get("FH2_HOST_HEADER"):
+        headers["Host"] = config.get("FH2_HOST_HEADER")
 
     response = requests.post(
-        Config.FH2_URL,
+        config.get("FH2_URL"),
         json=payload,
         headers=headers,
         timeout=10

@@ -57,3 +57,12 @@ Thumbs.db
 *.tmp
 *.bak
 *.swp
+
+# Frontend dependencies (compiled assets are committed)
+node_modules/
+
+# Local workflow catalog, lock and release packages
+workflows.json
+.data.lock
+release/
+wheelhouse/

@@ -1,0 +1,15 @@
+{
+  "name": "fh2-security-console",
+  "private": true,
+  "scripts": {
+    "build": "node frontend/build.mjs"
+  },
+  "dependencies": {
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "lucide-react": "0.468.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.9"
+  }
+}

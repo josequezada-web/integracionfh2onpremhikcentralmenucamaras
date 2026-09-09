@@ -1,3 +1,4 @@
+from services.workflow_service import cargar_workflows
 from flask import (
     Blueprint,
     render_template,
@@ -63,6 +64,7 @@ def cameras():
     return render_template(
         "cameras.html",
         camaras=camaras,
+        workflows=cargar_workflows(),
         middleware_endpoint=middleware_endpoint,
         message=message,
         message_type=message_type
@@ -99,7 +101,8 @@ def add_camera():
         camera_id,
         name,
         latitude,
-        longitude
+        longitude,
+        request.form.get("workflow_uuid", "")
     )
 
     return redirect(
@@ -140,7 +143,8 @@ def edit_camera(camera_id):
         camera_id,
         name,
         latitude,
-        longitude
+        longitude,
+        request.form.get("workflow_uuid", "")
     )
 
     return redirect(

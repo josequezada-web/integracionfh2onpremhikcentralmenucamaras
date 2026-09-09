@@ -1,3 +1,4 @@
+from services.workflow_service import cargar_workflows, agregar_workflow, eliminar_workflow
 from flask import (
     Blueprint,
     render_template,
@@ -40,6 +41,7 @@ def settings():
     return render_template(
         "settings.html",
         config=configuracion,
+        workflows=cargar_workflows(),
         gateway_reachable=comprobar_gateway(),
         token_masked=ocultar_valor(
             configuracion.get(
@@ -151,3 +153,19 @@ def save_settings():
             type="success"
         )
     )
+
+
+@settings_bp.route("/settings/workflows/add", methods=["POST"])
+def add_workflow():
+    success, message = agregar_workflow(
+        request.form.get("name", ""), request.form.get("workflow_uuid", "")
+    )
+    return redirect(url_for("settings.settings", message=message,
+                            type="success" if success else "error", _anchor="workflows"))
+
+
+@settings_bp.route("/settings/workflows/delete/<workflow_uuid>", methods=["POST"])
+def delete_workflow(workflow_uuid):
+    success, message = eliminar_workflow(workflow_uuid)
+    return redirect(url_for("settings.settings", message=message,
+                            type="success" if success else "error", _anchor="workflows"))

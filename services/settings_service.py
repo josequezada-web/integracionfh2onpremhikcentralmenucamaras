@@ -3,6 +3,7 @@ import socket
 from urllib.parse import urlparse
 
 from config import Config
+from services.storage_service import atomic_text, locked
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -50,15 +51,15 @@ def cargar_configuracion():
     return datos
 
 
+@locked
 def guardar_configuracion(datos):
     actual = cargar_configuracion()
 
     actual.update(datos)
 
-    with open(ENV_FILE, "w", encoding="utf-8") as archivo:
-        for clave in CONFIG_KEYS:
-            valor = actual.get(clave, "")
-            archivo.write(f"{clave}={valor}\n")
+    atomic_text(ENV_FILE, "".join(
+        f"{clave}={actual.get(clave, '')}\n" for clave in CONFIG_KEYS
+    ))
 
     aplicar_configuracion_runtime(actual)
 
@@ -251,3 +252,10 @@ def ocultar_valor(valor):
         + "••••••••"
         + valor[-6:]
     )
+
+
+def configuracion_actual():
+    """Read the persisted values on each request, across all Gunicorn workers."""
+    values = {key: getattr(Config, key, "") for key in CONFIG_KEYS}
+    values.update(cargar_configuracion())
+    return values

@@ -1,465 +1,67 @@
+{% import "_assets.html" as assets %}
+{% macro icon(name, size=18) -%}
+<svg width="{{ size }}" height="{{ size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{% if name == 'shield' %}<path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/>
+{% elif name == 'dashboard' %}<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>
+{% elif name == 'cameras' %}<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v11h20V9a2 2 0 0 0-2-2h-3Z"/><circle cx="12" cy="13" r="3"/>
+{% elif name == 'settings' %}<path d="m9 3-1 3-3 1-2 3 2 2-1 3 3 3 3-1 2 3 3-2 3 1 2-3-1-3 2-2-2-3-3-1-1-3Z"/><circle cx="12" cy="12" r="3"/>
+{% else %}<path d="m9 18 6-6-6-6"/>{% endif %}
+</svg>
+{%- endmacro %}
+{% set page_label = {'dashboard':'Vista general', 'cameras':'Cámaras', 'settings':'Configuración'}.get(active_page, 'Vista general') %}
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>
-        {% block title %}
-        FH2 × HikCentral
-        {% endblock %}
-    </title>
-
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-
-        body {
-            margin: 0;
-
-            min-height: 100vh;
-
-            font-family:
-                Inter,
-                Arial,
-                Helvetica,
-                sans-serif;
-
-            background:
-                radial-gradient(circle at top right,
-                    #15233d,
-                    #08111f 45%);
-
-            color: #f5f7fb;
-        }
-
-
-        /* ==============================
-           HEADER GENERAL
-        ============================== */
-
-        .topbar {
-            min-height: 82px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            padding: 0 38px;
-
-            background:
-                rgba(11, 20, 36, 0.92);
-
-            border-bottom:
-                1px solid rgba(255, 255, 255, 0.08);
-
-            backdrop-filter: blur(12px);
-        }
-
-
-        .brand-title {
-            font-size: 21px;
-            font-weight: 700;
-        }
-
-
-        .brand-subtitle {
-            margin-top: 5px;
-
-            color: #8896aa;
-
-            font-size: 12px;
-
-            letter-spacing: 1.4px;
-
-            text-transform: uppercase;
-        }
-
-
-        /* ==============================
-           NAVEGACION GENERAL
-        ============================== */
-
-        .header-right {
-            display: flex;
-
-            align-items: center;
-
-            gap: 18px;
-        }
-
-
-        .nav {
-            display: flex;
-
-            gap: 10px;
-        }
-
-
-        .nav-link {
-            padding:
-                8px 12px;
-
-            border-radius: 8px;
-
-            text-decoration: none;
-
-            color: #aeb9c9;
-
-            background:
-                rgba(255, 255, 255, 0.04);
-
-            border:
-                1px solid rgba(255, 255, 255, 0.07);
-
-            font-size: 12px;
-
-            font-weight: 600;
-
-            transition: 0.2s;
-        }
-
-
-        .nav-link:hover {
-            color: #ffffff;
-
-            border-color:
-                rgba(117, 185, 255, 0.45);
-        }
-
-
-        .nav-link.active {
-            color: #75b9ff;
-
-            border-color:
-                rgba(117, 185, 255, 0.35);
-
-            background:
-                rgba(117, 185, 255, 0.08);
-        }
-
-
-        /* ==============================
-           ESTADO DEL SISTEMA
-        ============================== */
-
-        .header-status {
-            display: flex;
-
-            align-items: center;
-
-            gap: 18px;
-        }
-
-
-        .system-status {
-            display: flex;
-
-            align-items: center;
-
-            gap: 8px;
-
-            color: #67e8a5;
-
-            font-size: 13px;
-
-            font-weight: 600;
-        }
-
-
-        .pulse {
-            width: 8px;
-            height: 8px;
-
-            border-radius: 50%;
-
-            background: #67e8a5;
-
-            box-shadow:
-                0 0 0 rgba(103, 232, 165, 0.7);
-
-            animation:
-                pulse 2s infinite;
-        }
-
-
-        @keyframes pulse {
-
-            0% {
-                box-shadow:
-                    0 0 0 0 rgba(103, 232, 165, 0.5);
-            }
-
-            70% {
-                box-shadow:
-                    0 0 0 8px rgba(103, 232, 165, 0);
-            }
-
-            100% {
-                box-shadow:
-                    0 0 0 0 rgba(103, 232, 165, 0);
-            }
-
-        }
-
-
-        .clock {
-            color: #a6b0c1;
-
-            font-family: monospace;
-
-            font-size: 14px;
-        }
-
-
-        /* ==============================
-           CONTENIDO GENERAL
-        ============================== */
-
-        .container {
-            max-width: 1500px;
-
-            margin: auto;
-
-            padding:
-                32px 38px 50px;
-        }
-
-
-        .section-title {
-            margin-bottom: 18px;
-
-            color: #8090a6;
-
-            font-size: 13px;
-
-            font-weight: 700;
-
-            letter-spacing: 1.5px;
-
-            text-transform: uppercase;
-        }
-
-
-        .green {
-            color: #67e8a5;
-        }
-
-
-        .red {
-            color: #ff7d7d;
-        }
-
-
-        .blue {
-            color: #75b9ff;
-        }
-
-
-        /* ==============================
-           RESPONSIVE GENERAL
-        ============================== */
-
-        @media(max-width: 700px) {
-
-            .topbar {
-                padding: 20px;
-
-                flex-direction: column;
-
-                align-items: flex-start;
-
-                gap: 18px;
-            }
-
-
-            .header-right {
-                width: 100%;
-
-                flex-direction: column;
-
-                align-items: flex-start;
-            }
-
-
-            .nav {
-                width: 100%;
-
-                flex-wrap: wrap;
-            }
-
-
-            .header-status {
-                width: 100%;
-
-                justify-content: space-between;
-            }
-
-
-            .container {
-                padding:
-                    24px 18px 45px;
-            }
-
-        }
-    </style>
-
-
-    <!--
-        Aquí cada página hija puede insertar
-        su propio bloque <style>.
-    -->
-
-    {% block styles %}
-    {% endblock %}
-
+    <meta name="theme-color" content="#101c30">
+    <title>{% block title %}{{ page_label }} · FH2 × HikCentral{% endblock %}</title>
+    <link rel="stylesheet" href="{{ assets.url('dist/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ assets.url('admin.css') }}">
+    <link rel="icon" type="image/png" href="{{ assets.url('brand/fh2xhikcentral.png') }}">
+    {% block styles %}{% endblock %}
 </head>
-
-
-<body>
-
-
-    <header class="topbar">
-
-
-        <div>
-
-            <div class="brand-title">
-                FH2 × HikCentral
-            </div>
-
-            <div class="brand-subtitle">
-                Autonomous Security Response
-            </div>
-
-        </div>
-
-
-        <div class="header-right">
-
-
-            <nav class="nav">
-
-
-                <a href="/dashboard" class="
-                    nav-link
-                    {% if active_page == 'dashboard' %}
-                    active
-                    {% endif %}
-                ">
-                    Dashboard
-                </a>
-
-
-                <a href="/cameras" class="
-                    nav-link
-                    {% if active_page == 'cameras' %}
-                    active
-                    {% endif %}
-                ">
-                    Cámaras
-                </a>
-
-
-                <a href="/settings" class="
-                    nav-link
-                    {% if active_page == 'settings' %}
-                    active
-                    {% endif %}
-                ">
-                    Settings
-                </a>
-
-
-            </nav>
-
-
-            {% block header_status %}
-
-            <div class="header-status">
-
-                <div id="system-status" class="system-status">
-
-                    <div class="pulse"></div>
-
-                    SYSTEM ONLINE
-
+<body data-page="{{ active_page }}">
+<div class="console">
+    <aside class="sidebar">
+        <a class="brand brand-home" href="/dashboard" aria-label="Centro de Operaciones · Inicio">
+            <img class="brand-artwork" src="{{ assets.url('brand/fh2xhikcentral.png') }}" width="1536" height="1024" alt="FlightHub 2 × HikCentral">
+            <span class="brand-home-title">Centro de Operaciones<small>HIKCENTRAL + DJI FLIGHTHUB 2</small></span>
+        </a>
+        <div class="nav-label">ESPACIO DE TRABAJO</div>
+        <nav aria-label="Navegación principal">
+        {% for key, label in [('dashboard','Vista general'),('cameras','Cámaras'),('settings','Configuración')] %}
+            <a href="/{{ key }}" {% if active_page == key %}class="active" aria-current="page"{% endif %}>{{ icon(key) }}{{ label }}</a>
+        {% endfor %}
+        </nav>
+        <div class="sidebar-bottom"><span class="environment-dot"></span>On-Premises<small>HikCentral → FlightHub 2</small></div>
+    </aside>
+    <div class="workspace">
+        <header class="topbar">
+            <span class="breadcrumb">Centro de operaciones {{ icon('chevron',14) }}<strong>{{ page_label }}</strong></span>
+            <div class="header-identity">
+                {% if active_page == 'cameras' %}
+                    {% set logo, logo_alt, brand_title, brand_caption = 'logohikcentral2.png', 'HikCentral', 'HikCentral', 'CÁMARAS Y DESTINOS' %}
+                {% elif active_page == 'settings' %}
+                    {% set logo, logo_alt, brand_title, brand_caption = 'logofh22.png', 'DJI FlightHub 2', 'DJI FlightHub 2', 'CONEXIÓN Y WORKFLOW' %}
+                {% else %}
+                    {% set logo, logo_alt, brand_title, brand_caption = 'fh2xhikcentral.png', 'FlightHub 2 × HikCentral', 'Centro de Operaciones', 'HIKCENTRAL + DJI FLIGHTHUB 2' %}
+                {% endif %}
+                <div class="product-brand">
+                    <span class="product-artwork"><img src="{{ assets.url('brand/' ~ logo) }}" width="{{ 1278 if active_page == 'cameras' else 1536 }}" height="{{ 1230 if active_page == 'cameras' else 1024 }}" alt="{{ logo_alt }}"></span>
+                    <span class="product-name">{{ brand_title }}<small>{{ brand_caption }}</small></span>
                 </div>
-
-
-                <div id="clock" class="clock">
-                    --:--:--
-                </div>
-
+                <div id="header-status"></div>
             </div>
-
-            {% endblock %}
-
-
-        </div>
-
-    </header>
-
-
-    <main class="container">
-
-        {% block content %}
-        {% endblock %}
-
-    </main>
-
-
-    {% block overlays %}
-    {% endblock %}
-
-
-    <!-- ==============================
-     JAVASCRIPT GLOBAL
-================================ -->
-
-    <script>
-
-        function actualizarRelojGlobal() {
-
-            const reloj =
-                document.getElementById("clock");
-
-            if (!reloj) {
-                return;
-            }
-
-            reloj.textContent =
-                new Date().toLocaleTimeString();
-
-        }
-
-
-        actualizarRelojGlobal();
-
-
-        setInterval(
-            actualizarRelojGlobal,
-            1000
-        );
-
-    </script>
-
-
-    <!--
-    Cada página puede insertar aquí
-    su JavaScript específico.
--->
-
-    {% block scripts %}
-    {% endblock %}
-
-
+        </header>
+        <main>
+            {% block content %}{% endblock %}
+            <footer><span>FH2 × HikCentral</span><span>Consola de operaciones · On-Premises</span></footer>
+        </main>
+    </div>
+</div>
+{% block overlays %}{% endblock %}
+<script defer src="{{ assets.url('admin.js') }}"></script>
+{% block scripts %}{% endblock %}
 </body>
-
 </html>

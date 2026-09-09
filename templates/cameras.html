@@ -3,334 +3,35 @@
 {% set active_page = "cameras" %}
 
 {% block title %}
-Camera Configuration · FH2 × HikCentral
+Cámaras · FH2 × HikCentral
 {% endblock %}
 
-{% block styles %}
-<style>
-
-/* ==============================
-   PAGE HEADING
-============================== */
-
-.page-heading {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    margin-bottom: 28px;
-}
-
-.page-title {
-    margin: 0;
-    font-size: 30px;
-}
-
-.page-description {
-    max-width: 650px;
-    margin-top: 9px;
-    color: #8493a8;
-    font-size: 13px;
-    line-height: 1.6;
-}
-
-.camera-count {
-    color: #75b9ff;
-    font-size: 13px;
-    font-weight: 700;
-}
-
-/* ==============================
-   MESSAGE
-============================== */
-
-.message {
-    margin-bottom: 22px;
-    padding: 14px 18px;
-    border-radius: 10px;
-    font-size: 13px;
-}
-
-.message.success {
-    color: #67e8a5;
-    background: rgba(103,232,165,0.08);
-    border: 1px solid rgba(103,232,165,0.22);
-}
-
-.message.error {
-    color: #ff7d7d;
-    background: rgba(255,125,125,0.08);
-    border: 1px solid rgba(255,125,125,0.22);
-}
-
-/* ==============================
-   LAYOUT
-============================== */
-
-.layout {
-    display: grid;
-    grid-template-columns: 370px 1fr;
-    gap: 24px;
-    align-items: start;
-}
-
-.panel {
-    padding: 24px;
-    border-radius: 16px;
-    background: rgba(17,29,50,0.86);
-    border: 1px solid rgba(255,255,255,0.07);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.16);
-}
-
-.panel-title {
-    margin: 0 0 6px;
-    font-size: 17px;
-}
-
-.panel-subtitle {
-    margin: 0 0 24px;
-    color: #78889e;
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-/* ==============================
-   FORMULARIOS
-============================== */
-
-.field {
-    margin-bottom: 17px;
-}
-
-label {
-    display: block;
-    margin-bottom: 7px;
-    color: #93a1b4;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.7px;
-    text-transform: uppercase;
-}
-
-input {
-    width: 100%;
-    padding: 12px 13px;
-    border-radius: 9px;
-    border: 1px solid rgba(255,255,255,0.09);
-    outline: none;
-    background: rgba(5,13,25,0.7);
-    color: white;
-    font-size: 13px;
-}
-
-input:focus {
-    border-color: rgba(117,185,255,0.65);
-    box-shadow: 0 0 0 3px rgba(117,185,255,0.08);
-}
-
-.button {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 9px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 12px;
-}
-
-.button-primary {
-    color: #07101c;
-    background: #75b9ff;
-}
-
-.button-primary:hover {
-    background: #91c8ff;
-}
-
-/* ==============================
-   CAMERA GRID
-============================== */
-
-.camera-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 17px;
-}
-
-.camera-card {
-    padding: 20px;
-    border-radius: 14px;
-    background: rgba(8,17,31,0.68);
-    border: 1px solid rgba(255,255,255,0.07);
-    transition: transform 0.2s, border-color 0.2s;
-}
-
-.camera-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(117,185,255,0.32);
-}
-
-.camera-header {
-    display: flex;
-    justify-content: space-between;
-    gap: 15px;
-}
-
-.camera-name {
-    font-size: 17px;
-    font-weight: 700;
-}
-
-.camera-id {
-    margin-top: 4px;
-    color: #718198;
-    font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.badge {
-    height: fit-content;
-    padding: 5px 8px;
-    border-radius: 6px;
-    color: #67e8a5;
-    background: rgba(103,232,165,0.08);
-    font-size: 10px;
-    font-weight: 700;
-}
-
-.coordinates {
-    margin-top: 18px;
-    padding: 11px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.025);
-    font-family: monospace;
-    color: #9eb0c7;
-    font-size: 12px;
-}
-
-/* ==============================
-   HIKCENTRAL BOX
-============================== */
-
-.hikcentral {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-}
-
-.hikcentral-title {
-    margin-bottom: 8px;
-    color: #728199;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.endpoint,
-.json {
-    padding: 9px 10px;
-    margin-top: 7px;
-    border-radius: 7px;
-    background: rgba(0,0,0,0.22);
-    color: #a9bad0;
-    font-family: monospace;
-    font-size: 11px;
-    overflow-wrap: anywhere;
-}
-
-/* ==============================
-   EDIT CAMERA
-============================== */
-
-.edit-form {
-    margin-top: 18px;
-    padding-top: 18px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-}
-
-.edit-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.button-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-}
-
-.small-button {
-    flex: 1;
-    padding: 9px;
-    border-radius: 7px;
-    border: 1px solid rgba(255,255,255,0.08);
-    cursor: pointer;
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.save-button {
-    color: #75b9ff;
-    background: rgba(117,185,255,0.08);
-}
-
-.delete-button {
-    color: #ff7d7d;
-    background: rgba(255,125,125,0.07);
-}
-
-.empty {
-    padding: 50px 20px;
-    text-align: center;
-    color: #748399;
-}
-
-/* ==============================
-   RESPONSIVE CAMERAS
-============================== */
-
-@media(max-width: 1050px) {
-    .layout {
-        grid-template-columns: 1fr;
-    }
-
-    .camera-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media(max-width: 650px) {
-    .page-heading {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .edit-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-</style>
-{% endblock %}
-
+{% macro workflow_picker(id, selected='') %}
+<div class="field workflow-field">
+    <label for="{{ id }}">Workflow de respuesta</label>
+    <select id="{{ id }}" name="workflow_uuid">
+        <option value="">Usar workflow predeterminado</option>
+        {% for uuid, workflow in (workflows|default({})).items() %}
+        <option value="{{ uuid }}" {% if selected == uuid %}selected{% endif %}>{{ workflow.name }} · {{ uuid }}</option>
+        {% endfor %}
+        {% if selected and selected not in (workflows|default({})) %}
+        <option value="{{ selected }}" selected>Workflow no disponible · {{ selected }}</option>
+        {% endif %}
+    </select>
+    <a class="text-button" href="/settings#workflows">+ Administrar workflows</a>
+</div>
+{% endmacro %}
 {% block content %}
 
 <div class="page-heading">
 
     <div>
+        <div class="eyebrow">DISPOSITIVOS Y DESTINOS</div>
         <h1 class="page-title">
-            Camera Configuration
+            Cámaras
         </h1>
 
-        <div class="page-description">
-            Administra las ubicaciones asociadas a los eventos
-            de HikCentral. Cada cámara utiliza el mismo middleware,
-            Project UUID y Workflow UUID; solamente cambia la
-            ubicación de respuesta.
-        </div>
+        <p class="page-description">Administra las cámaras y sus destinos de respuesta.</p>
     </div>
 
     <div class="camera-count">
@@ -340,12 +41,12 @@ input:focus {
 </div>
 
 {% if message %}
-    <div class="message {{ message_type }}">
+    <div class="message {{ message_type }}" role="status">
         {{ message }}
     </div>
 {% endif %}
 
-<div class="layout">
+<div class="layout admin-cameras">
 
     <aside class="panel">
 
@@ -361,8 +62,8 @@ input:focus {
         <form method="POST" action="/cameras/add">
 
             <div class="field">
-                <label>Camera ID</label>
-                <input
+                <label for="cameras-field-1">ID de cámara</label>
+                <input id="cameras-field-1"
                     type="text"
                     name="camera_id"
                     placeholder="cam04"
@@ -371,8 +72,8 @@ input:focus {
             </div>
 
             <div class="field">
-                <label>Nombre</label>
-                <input
+                <label for="cameras-field-2">Nombre</label>
+                <input id="cameras-field-2"
                     type="text"
                     name="name"
                     placeholder="Acceso principal"
@@ -381,8 +82,8 @@ input:focus {
             </div>
 
             <div class="field">
-                <label>Latitud</label>
-                <input
+                <label for="cameras-field-3">Latitud</label>
+                <input id="cameras-field-3"
                     type="number"
                     name="latitude"
                     step="any"
@@ -392,8 +93,8 @@ input:focus {
             </div>
 
             <div class="field">
-                <label>Longitud</label>
-                <input
+                <label for="cameras-field-4">Longitud</label>
+                <input id="cameras-field-4"
                     type="number"
                     name="longitude"
                     step="any"
@@ -402,11 +103,13 @@ input:focus {
                 >
             </div>
 
+            {{ workflow_picker("new-workflow") }}
+
             <button
                 type="submit"
                 class="button button-primary"
             >
-                + AGREGAR CÁMARA
+                + Agregar cámara
             </button>
 
         </form>
@@ -423,12 +126,14 @@ input:focus {
             Los cambios se aplican inmediatamente al middleware.
         </p>
 
+        <label class="search camera-search">Buscar cámara<input id="camera-search" type="search" placeholder="Nombre o identificador…"></label>
+        <p id="camera-no-results" class="empty" hidden>No hay cámaras que coincidan con tu búsqueda.</p>
         {% if camaras %}
 
             <div class="camera-grid">
 
                 {% for camera_id, camera in camaras.items() %}
-                    <div class="camera-card">
+                    <div class="camera-card" data-camera-search="{{ camera_id }} {{ camera.name }}">
 
                         <div class="camera-header">
 
@@ -443,7 +148,7 @@ input:focus {
                             </div>
 
                             <div class="badge">
-                                READY
+                                Configurada
                             </div>
 
                         </div>
@@ -452,22 +157,25 @@ input:focus {
                             {{ camera.latitude }}, {{ camera.longitude }}
                         </div>
 
-                        <div class="hikcentral">
+                        <div class="camera-workflow"><span>Workflow de respuesta</span><strong>{{ (workflows|default({})).get(camera.get('workflow_uuid'), {}).get('name', 'No disponible' if camera.get('workflow_uuid') else 'Predeterminado') }}</strong></div>
 
-                            <div class="hikcentral-title">
-                                HikCentral HTTP POST
-                            </div>
+                        <details class="hikcentral">
+
+                            <summary class="hikcentral-title">
+                                Conexión HikCentral
+                            </summary>
 
                             <div class="endpoint">
                                 {{ middleware_endpoint }}
                             </div>
 
                             <div class="json">
-                                {"camera_id":"{{ camera_id }}"}
+                                {{ {"camera_id": camera_id}|tojson }}
                             </div>
 
-                        </div>
+                        </details>
 
+                        <details class="edit-details"><summary>Editar cámara</summary>
                         <form
                             class="edit-form"
                             method="POST"
@@ -475,8 +183,8 @@ input:focus {
                         >
 
                             <div class="field">
-                                <label>Nombre</label>
-                                <input
+                                <label for="cameras-field-5-{{ loop.index }}">Nombre</label>
+                                <input id="cameras-field-5-{{ loop.index }}"
                                     type="text"
                                     name="name"
                                     value="{{ camera.name }}"
@@ -487,8 +195,8 @@ input:focus {
                             <div class="edit-grid">
 
                                 <div class="field">
-                                    <label>Latitud</label>
-                                    <input
+                                    <label for="cameras-field-6-{{ loop.index }}">Latitud</label>
+                                    <input id="cameras-field-6-{{ loop.index }}"
                                         type="number"
                                         step="any"
                                         name="latitude"
@@ -498,8 +206,8 @@ input:focus {
                                 </div>
 
                                 <div class="field">
-                                    <label>Longitud</label>
-                                    <input
+                                    <label for="cameras-field-7-{{ loop.index }}">Longitud</label>
+                                    <input id="cameras-field-7-{{ loop.index }}"
                                         type="number"
                                         step="any"
                                         name="longitude"
@@ -510,13 +218,15 @@ input:focus {
 
                             </div>
 
+                            {{ workflow_picker("edit-workflow-" ~ loop.index, camera.get("workflow_uuid", "")) }}
+
                             <div class="button-row">
 
                                 <button
                                     type="submit"
                                     class="small-button save-button"
                                 >
-                                    GUARDAR
+                                    Guardar cambios
                                 </button>
 
                                 <button
@@ -524,14 +234,15 @@ input:focus {
                                     class="small-button delete-button"
                                     formaction="/cameras/delete/{{ camera_id }}"
                                     formmethod="POST"
-                                    onclick="return confirm('¿Eliminar {{ camera.name }}?');"
+                                    data-delete-name="{{ camera.name }}" formnovalidate
                                 >
-                                    ELIMINAR
+                                    Eliminar
                                 </button>
 
                             </div>
 
                         </form>
+                        </details>
 
                     </div>
                 {% endfor %}

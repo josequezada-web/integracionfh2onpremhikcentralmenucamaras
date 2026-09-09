@@ -1,6 +1,9 @@
 import json
 import os
 
+from services.storage_service import atomic_json, locked
+from services.workflow_service import cargar_workflows
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 CAMERAS_FILE = os.path.join(BASE_DIR, "cameras.json")
@@ -19,13 +22,7 @@ def cargar_camaras():
 
 
 def guardar_camaras(camaras):
-    with open(CAMERAS_FILE, "w", encoding="utf-8") as archivo:
-        json.dump(
-            camaras,
-            archivo,
-            indent=4,
-            ensure_ascii=False
-        )
+    atomic_json(CAMERAS_FILE, camaras)
 
 
 def obtener_camara(camera_id):
@@ -51,7 +48,11 @@ def validar_coordenadas(latitude, longitude):
     return True, latitude, longitude
 
 
-def agregar_camara(camera_id, name, latitude, longitude):
+@locked
+def agregar_camara(camera_id, name, latitude, longitude, workflow_uuid=""):
+    workflow_uuid = workflow_uuid.strip()
+    if workflow_uuid and workflow_uuid not in cargar_workflows():
+        return False, "Selecciona un workflow registrado."
     camera_id = camera_id.strip()
     name = name.strip()
 
@@ -77,7 +78,8 @@ def agregar_camara(camera_id, name, latitude, longitude):
     camaras[camera_id] = {
         "name": name,
         "latitude": latitude,
-        "longitude": longitude
+        "longitude": longitude,
+        "workflow_uuid": workflow_uuid
     }
 
     guardar_camaras(camaras)
@@ -85,11 +87,18 @@ def agregar_camara(camera_id, name, latitude, longitude):
     return True, "Cámara agregada correctamente."
 
 
-def editar_camara(camera_id, name, latitude, longitude):
+@locked
+def editar_camara(camera_id, name, latitude, longitude, workflow_uuid=None):
     camaras = cargar_camaras()
 
     if camera_id not in camaras:
         return False, "La cámara no existe."
+
+    if workflow_uuid is None:
+        workflow_uuid = camaras[camera_id].get("workflow_uuid", "")
+    workflow_uuid = workflow_uuid.strip()
+    if workflow_uuid and workflow_uuid not in cargar_workflows():
+        return False, "Selecciona un workflow registrado."
 
     name = name.strip()
 
@@ -107,7 +116,8 @@ def editar_camara(camera_id, name, latitude, longitude):
     camaras[camera_id] = {
         "name": name,
         "latitude": latitude,
-        "longitude": longitude
+        "longitude": longitude,
+        "workflow_uuid": workflow_uuid
     }
 
     guardar_camaras(camaras)
@@ -115,6 +125,7 @@ def editar_camara(camera_id, name, latitude, longitude):
     return True, "Cámara actualizada correctamente."
 
 
+@locked
 def eliminar_camara(camera_id):
     camaras = cargar_camaras()
 

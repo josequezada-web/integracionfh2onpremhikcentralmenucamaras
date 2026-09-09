@@ -1,351 +1,137 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-set -e
-
-# ============================================================
-# FH2 × HikCentral Integration Installer
-# ============================================================
-
+SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TARGET_DIR="/opt/fh2-hikcentral"
 SERVICE_NAME="hikmiddleware"
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_USER="hikmiddleware"
+OFFLINE=false
+CHECK_ONLY=false
+usage() {
+    cat <<HELP
+Centro de Operaciones · instalador Linux con systemd
+sudo bash install.sh [--target /ruta/permanente] [--offline]
+bash install.sh --check [--offline]
 
-if [ -n "$SUDO_USER" ]; then
-    APP_USER="$SUDO_USER"
-else
-    APP_USER="$(whoami)"
+--offline  Instala Python desde wheelhouse/ sin acceder a Internet.
+           Requiere Python 3.10+ con venv/ensurepip ya instalado.
+--check    Verifica requisitos y archivos, sin modificar el sistema.
+--target   Directorio de instalación permanente (predeterminado: /opt/fh2-hikcentral).
+HELP
+}
+while (($#)); do
+    case "$1" in
+        --target) [[ $# -ge 2 ]] || { usage; exit 1; }; TARGET_DIR="$2"; shift 2 ;;
+        --offline) OFFLINE=true; shift ;;
+        --check) CHECK_ONLY=true; shift ;;
+        -h|--help) usage; exit 0 ;;
+        *) usage; exit 1 ;;
+    esac
+done
+# Keep generated systemd directives literal and unambiguous.
+[[ "$TARGET_DIR" =~ ^/[a-zA-Z0-9_/-]+$ && "$TARGET_DIR" != / && "$TARGET_DIR" != *'/../'* && "$TARGET_DIR" != */.. ]] || {
+    echo 'Usa una ruta absoluta permanente, sin espacios ni componentes ..'; exit 1;
+}
+for file in app.py requirements.lock .env.example templates/_assets.html static/dist/dashboard.js static/dist/dashboard.css static/brand/fh2xhikcentral.png; do
+    [[ -f "$SOURCE_DIR/$file" ]] || { echo "Falta $file. Genera el frontend antes de instalar."; exit 1; }
+done
+if $OFFLINE; then
+    compgen -G "$SOURCE_DIR/wheelhouse/*.whl" >/dev/null || { echo 'Falta wheelhouse/. Prepara el paquete offline en otro equipo.'; exit 1; }
 fi
-
-APP_GROUP="$(id -gn "$APP_USER")"
-
-VENV_DIR="$PROJECT_DIR/venv"
-REQUIREMENTS_FILE="$PROJECT_DIR/requirements.txt"
-ENV_FILE="$PROJECT_DIR/.env"
-ENV_EXAMPLE="$PROJECT_DIR/.env.example"
-
-SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
-
-
-echo
-echo "============================================================"
-echo " FH2 × HikCentral Integration Installer"
-echo "============================================================"
-echo
-echo "Usuario:       $APP_USER"
-echo "Grupo:         $APP_GROUP"
-echo "Proyecto:      $PROJECT_DIR"
-echo "Servicio:      $SERVICE_NAME"
-echo
-
-
-# ============================================================
-# ROOT CHECK
-# ============================================================
-
-if [ "$EUID" -ne 0 ]; then
-    echo "ERROR: Este instalador debe ejecutarse con sudo."
-    echo
-    echo "Ejemplo:"
-    echo "sudo ./install.sh"
-    exit 1
+if $CHECK_ONLY; then
+    command -v python3 >/dev/null
+    python3 -c 'import sys, venv, ensurepip; assert sys.version_info >= (3, 10), "Se requiere Python 3.10+"'
+    command -v systemctl >/dev/null
+    echo "Preflight correcto. Destino: $TARGET_DIR. Offline: $OFFLINE. No se modificó el sistema."
+    exit 0
 fi
-
-
-# ============================================================
-# PYTHON CHECK
-# ============================================================
-
-echo "[1/8] Verificando Python..."
-
-if ! command -v python3 >/dev/null 2>&1; then
-    echo "Python 3 no está instalado."
-    echo "Instalando..."
-    apt update
-    apt install -y python3
-fi
-
-PYTHON_VERSION="$(python3 --version)"
-
-echo "OK: $PYTHON_VERSION"
-
-
-# ============================================================
-# VENV SUPPORT
-# ============================================================
-
-echo
-echo "[2/8] Verificando soporte para entornos virtuales..."
-
-if ! python3 -m venv --help >/dev/null 2>&1; then
-
-    echo "python3-venv no está disponible."
-    echo "Instalando..."
-
-    apt update
-    apt install -y python3-venv
-
-fi
-
-echo "OK: python3-venv disponible."
-
-
-# ============================================================
-# REQUIREMENTS
-# ============================================================
-
-echo
-echo "[3/8] Verificando requirements.txt..."
-
-if [ ! -f "$REQUIREMENTS_FILE" ]; then
-    echo "ERROR: No existe:"
-    echo "$REQUIREMENTS_FILE"
-    exit 1
-fi
-
-echo "OK: requirements.txt encontrado."
-
-
-# ============================================================
-# VIRTUAL ENVIRONMENT
-# ============================================================
-
-echo
-echo "[4/8] Preparando entorno virtual..."
-
-if [ ! -d "$VENV_DIR" ]; then
-
-    sudo -u "$APP_USER" python3 -m venv "$VENV_DIR"
-
-    echo "Entorno virtual creado."
-
-else
-
-    echo "El entorno virtual ya existe."
-
-fi
-
-
-echo
-echo "Instalando dependencias..."
-
-sudo -u "$APP_USER" \
-    "$VENV_DIR/bin/pip" install --upgrade pip
-
-sudo -u "$APP_USER" \
-    "$VENV_DIR/bin/pip" install -r "$REQUIREMENTS_FILE"
-
-echo "OK: dependencias instaladas."
-
-
-# ============================================================
-# ENV FILE
-# ============================================================
-
-echo
-echo "[5/8] Verificando configuración .env..."
-
-if [ ! -f "$ENV_FILE" ]; then
-
-    if [ -f "$ENV_EXAMPLE" ]; then
-
-        cp "$ENV_EXAMPLE" "$ENV_FILE"
-
-        chown "$APP_USER:$APP_GROUP" "$ENV_FILE"
-
-        chmod 600 "$ENV_FILE"
-
-        echo ".env creado desde .env.example."
-
-    else
-
-        touch "$ENV_FILE"
-
-        chown "$APP_USER:$APP_GROUP" "$ENV_FILE"
-
-        chmod 600 "$ENV_FILE"
-
-        echo ".env vacío creado."
-
+[[ "$EUID" -eq 0 ]] || { echo 'Ejecuta con sudo bash install.sh'; exit 1; }
+[[ -d /run/systemd/system ]] || { echo 'Este instalador requiere Linux iniciado con systemd.'; exit 1; }
+if ! python3 -c 'import sys, venv, ensurepip; assert sys.version_info >= (3, 10)' >/dev/null 2>&1; then
+    if $OFFLINE; then
+        echo 'Instala previamente Python 3.10+ y python3-venv para usar el modo offline.'; exit 1
     fi
-
-    echo
-    echo "IMPORTANTE:"
-    echo "La configuración FH2 aún debe completarse desde /settings."
-
+    command -v apt-get >/dev/null || { echo 'Instala Python 3.10+ y venv con el gestor de tu distribución.'; exit 1; }
+    apt-get update
+    apt-get install -y python3 python3-venv
+fi
+python3 -c 'import sys, venv, ensurepip; assert sys.version_info >= (3, 10)'
+if ! id "$APP_USER" >/dev/null 2>&1; then
+    useradd --system --user-group --home-dir "$TARGET_DIR" --shell /usr/sbin/nologin "$APP_USER"
+fi
+APP_GROUP="$(id -gn "$APP_USER")"
+if [[ -d "$TARGET_DIR" && -n "$(find "$TARGET_DIR" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
+    [[ -f "$TARGET_DIR/app.py" && -f "$TARGET_DIR/templates/base.html" ]] || {
+        echo 'El destino contiene archivos de otra aplicación. Elige un directorio vacío.'; exit 1;
+    }
+fi
+mkdir -p "$TARGET_DIR"
+python3 "$SOURCE_DIR/scripts/deploy_files.py" "$SOURCE_DIR" "$TARGET_DIR"
+chown -R "$APP_USER:$APP_GROUP" "$TARGET_DIR"
+if [[ ! -x "$TARGET_DIR/venv/bin/python" ]]; then
+    runuser -u "$APP_USER" -- python3 -m venv "$TARGET_DIR/venv"
+fi
+if $OFFLINE; then
+    # The service account may not be able to traverse a user's home or USB mount.
+    if [[ "$SOURCE_DIR" != "$TARGET_DIR" ]]; then
+        mkdir -p "$TARGET_DIR/wheelhouse"
+        cp "$SOURCE_DIR"/wheelhouse/*.whl "$TARGET_DIR/wheelhouse/"
+        chown -R "$APP_USER:$APP_GROUP" "$TARGET_DIR/wheelhouse"
+    fi
+    runuser -u "$APP_USER" -- "$TARGET_DIR/venv/bin/python" -m pip install --no-index --find-links="$TARGET_DIR/wheelhouse" -r "$TARGET_DIR/requirements.lock"
 else
-
-    echo "El archivo .env ya existe."
-    chmod 600 "$ENV_FILE"
-
+    runuser -u "$APP_USER" -- "$TARGET_DIR/venv/bin/python" -m pip install -r "$TARGET_DIR/requirements.lock"
 fi
-
-
-# ============================================================
-# LOG DIRECTORY
-# ============================================================
-
-echo
-echo "[6/8] Preparando archivos de aplicación..."
-
-mkdir -p "$PROJECT_DIR/logs"
-
-chown -R "$APP_USER:$APP_GROUP" "$PROJECT_DIR/logs"
-
-if [ ! -f "$PROJECT_DIR/logs/events.json" ]; then
-
-    echo "[]" > "$PROJECT_DIR/logs/events.json"
-
-    chown "$APP_USER:$APP_GROUP" \
-        "$PROJECT_DIR/logs/events.json"
-
+if [[ ! -f "$TARGET_DIR/.env" ]]; then
+    cp "$TARGET_DIR/.env.example" "$TARGET_DIR/.env"
 fi
-
-
-if [ ! -f "$PROJECT_DIR/cameras.json" ]; then
-
-    echo "{}" > "$PROJECT_DIR/cameras.json"
-
-    chown "$APP_USER:$APP_GROUP" \
-        "$PROJECT_DIR/cameras.json"
-
-fi
-
-echo "OK: archivos de datos preparados."
-
-
-# ============================================================
-# SYSTEMD SERVICE
-# ============================================================
-
-echo
-echo "[7/8] Creando servicio systemd..."
-
-cat > "$SERVICE_FILE" <<EOF
+mkdir -p "$TARGET_DIR/logs"
+for file in cameras.json workflows.json; do
+    if [[ ! -f "$TARGET_DIR/$file" ]]; then printf '{}\n' > "$TARGET_DIR/$file"; fi
+done
+if [[ ! -f "$TARGET_DIR/logs/events.json" ]]; then printf '[]\n' > "$TARGET_DIR/logs/events.json"; fi
+chown -R "$APP_USER:$APP_GROUP" "$TARGET_DIR"
+chmod 600 "$TARGET_DIR/.env" "$TARGET_DIR/cameras.json" "$TARGET_DIR/workflows.json"
+cat > "/etc/systemd/system/$SERVICE_NAME.service" <<UNIT
 [Unit]
-Description=HikCentral to FH2 Middleware
+Description=Centro de Operaciones - HikCentral and DJI FlightHub 2
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 User=$APP_USER
 Group=$APP_GROUP
-
-WorkingDirectory=$PROJECT_DIR
-
-EnvironmentFile=$ENV_FILE
-
-ExecStart=$VENV_DIR/bin/gunicorn \\
-    --workers 2 \\
-    --bind 0.0.0.0:5000 \\
-    --timeout 30 \\
-    app:app
-
+WorkingDirectory=$TARGET_DIR
+ExecStart=$TARGET_DIR/venv/bin/gunicorn --workers 2 --bind 0.0.0.0:5000 --timeout 30 app:app
+ExecReload=/bin/kill -HUP \$MAINPID
 Restart=on-failure
 RestartSec=5
+UMask=0077
 
 [Install]
 WantedBy=multi-user.target
-EOF
-
-chmod 644 "$SERVICE_FILE"
-
+UNIT
 systemctl daemon-reload
-
 systemctl enable "$SERVICE_NAME"
-
-echo "OK: servicio creado."
-
-
-# ============================================================
-# START SERVICE
-# ============================================================
-
-echo
-echo "[8/8] Iniciando middleware..."
-
 systemctl restart "$SERVICE_NAME"
-
-sleep 2
-
-
-if systemctl is-active \
-    --quiet "$SERVICE_NAME"; then
-
-    echo
-    echo "============================================================"
-    echo " INSTALACION COMPLETADA"
-    echo "============================================================"
-    echo
-    echo "Servicio:"
-    echo "  $SERVICE_NAME"
-    echo
-    echo "Estado:"
-    echo "  ACTIVE"
-    echo
-
-else
-
-    echo
-    echo "============================================================"
-    echo " ERROR INICIANDO EL SERVICIO"
-    echo "============================================================"
-    echo
-    echo "Ejecuta:"
-    echo
-    echo "sudo systemctl status $SERVICE_NAME"
-    echo
-    echo "sudo journalctl -u $SERVICE_NAME -n 50"
-    echo
-
-    exit 1
-
+# HTTP readiness is more informative than merely checking the master PID.
+"$TARGET_DIR/venv/bin/python" - <<'PY'
+import time
+import urllib.request
+for attempt in range(20):
+    try:
+        with urllib.request.urlopen('http://127.0.0.1:5000/dashboard', timeout=2) as response:
+            assert response.status == 200
+        break
+    except Exception:
+        time.sleep(1)
+else:
+    raise SystemExit('El dashboard no respondió. Revisa: journalctl -u hikmiddleware -n 50')
+PY
+if [[ -n "${SUDO_USER:-}" && "$SUDO_USER" != root ]]; then
+    runuser -l "$SUDO_USER" -s /bin/sh -c "bash '$TARGET_DIR/scripts/install-shortcut.sh'" || echo 'Puedes crear el acceso directo manualmente desde tu sesión de escritorio.'
 fi
-
-
-# ============================================================
-# NETWORK INFORMATION
-# ============================================================
-
-AIO_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
-
-if [ -n "$AIO_IP" ]; then
-
-    echo "Abre desde un equipo de la misma red:"
-    echo
-    echo "  http://$AIO_IP:5000/dashboard"
-    echo
-    echo "Configuración FH2:"
-    echo
-    echo "  http://$AIO_IP:5000/settings"
-    echo
-    echo "Configuración de cámaras:"
-    echo
-    echo "  http://$AIO_IP:5000/cameras"
-    echo
-
-else
-
-    echo "No fue posible determinar automáticamente la IP."
-    echo
-    echo "Consulta la IP del AIO con:"
-    echo
-    echo "hostname -I"
-    echo
-
-fi
-
-
-echo "Comandos útiles:"
-echo
-echo "  sudo systemctl status $SERVICE_NAME"
-echo "  sudo systemctl restart $SERVICE_NAME"
-echo "  sudo journalctl -u $SERVICE_NAME -f"
-echo
-
-echo "Siguiente paso:"
-echo
-echo "1. Abrir /settings"
-echo "2. Configurar FlightHub 2"
-echo "3. Crear cámaras"
-echo "4. Configurar HikCentral"
-echo "5. Ejecutar un evento de prueba"
-echo
+printf '\nInstalación completada. Abre http://IP_DEL_SERVIDOR:5000/dashboard\n'
+printf 'Configura FlightHub 2 en /settings y las cámaras en /cameras.\n'
+printf 'Servicio: sudo systemctl status %s\n' "$SERVICE_NAME"
+printf 'Archivos y datos: %s\n' "$TARGET_DIR"

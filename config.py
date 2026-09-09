@@ -12,9 +12,9 @@ class Config:
     FH2_CREATOR_ID = os.getenv("FH2_CREATOR_ID")
     FH2_HOST_HEADER = os.getenv("FH2_HOST_HEADER")
 
-    DEFAULT_LATITUDE = float(os.getenv("DEFAULT_LATITUDE", "0"))
-    DEFAULT_LONGITUDE = float(os.getenv("DEFAULT_LONGITUDE", "0"))
-    DEFAULT_LEVEL = int(os.getenv("DEFAULT_LEVEL", "5"))
+    DEFAULT_LATITUDE = float(os.getenv("DEFAULT_LATITUDE") or "0")
+    DEFAULT_LONGITUDE = float(os.getenv("DEFAULT_LONGITUDE") or "0")
+    DEFAULT_LEVEL = int(os.getenv("DEFAULT_LEVEL") or "5")
     DEFAULT_DESCRIPTION = os.getenv(
         "DEFAULT_DESCRIPTION",
         "Movimiento detectado por HikCentral"
